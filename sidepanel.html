@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>옥토 · X 대화 도우미</title><link rel="stylesheet" href="sidepanel.css"><script type="module" src="sidepanel.js"></script></head>
+<body>
+  <header class="topbar"><div class="brand"><span class="brand-mark" aria-hidden="true">o.</span><div><strong>옥토</strong><span class="eyebrow">개인 메모</span></div></div><button id="settings" class="icon-button" title="설정 열기" aria-label="설정 열기">⚙</button></header>
+  <section class="dashboard" aria-label="오늘의 통계"><div class="section-label">TODAY <span id="date"></span></div><div class="stats"><div><b id="matched">0</b><span>수집한 글</span></div><div><b id="reviewed">0</b><span>오늘 본 글</span></div><div><b id="cost">$0.0000</b><span id="cost-label">예상 비용</span></div></div><p class="fineprint">‘오늘 본 글’은 ‘다음 글’로 넘긴 글 수입니다.</p><p id="cost-detail" class="fineprint"></p></section>
+  <main>
+    <div class="toolbar"><span class="connection" id="connection">연결 확인 중</span><button id="demo" class="text-button">체험 모드</button></div>
+    <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+    <div id="error" class="error" role="alert" hidden></div>
+    <section id="empty" class="empty" hidden><div class="empty-mark" aria-hidden="true">✳</div><h1>대화할 글을 찾아볼까요?</h1><p id="empty-text">설정에서 API를 연결하거나<br>체험 모드로 먼저 둘러보세요.</p><button id="empty-settings" class="secondary">연결 설정 열기</button></section>
+    <section id="post" hidden>
+      <div class="queue-heading"><span id="source" class="pill">키워드 검색</span><span id="remaining" class="muted"></span></div>
+      <article class="post-card"><div class="author"><div id="avatar" class="avatar" aria-hidden="true"></div><div><strong id="author"></strong><span id="handle" class="muted"></span><span id="verified-info" class="muted" hidden></span></div><a id="original" class="original" title="현재 탭에서 원문 열기">원문 열기</a></div><p id="post-text" class="post-text"></p><time id="post-date" class="fineprint"></time></article><div class="exclusion-actions"><button id="exclude-post" class="text-button" title="이 글을 다시 수집하지 않기">이 글 제외</button><button id="exclude-author" class="text-button" title="이 계정을 앱에서만 제외 · X 차단과 별개">이 계정 제외</button></div>
+      <section class="summary-card"><div class="section-label"><span aria-hidden="true">✦</span> 요약</div><p id="summary"></p></section>
+      <section class="draft-section"><div class="draft-heading"><label for="draft">댓글 초안</label><button id="regenerate" class="text-button">다시 생성 ↻</button></div><textarea id="draft" rows="5" maxlength="5000" placeholder="댓글을 만들거나 직접 입력하세요."></textarea><div class="draft-meta"><span id="copy-state">자유롭게 고쳐도 좋아요</span><span id="length">0자</span></div><div class="actions"><button id="copy" class="primary">댓글 복사</button><button id="next" class="secondary">다음 글 →</button></div><p id="generation-model" class="fineprint"></p><p class="fineprint">복사 후 X에서 붙여넣고 직접 게시하세요.<br>‘다음 글’은 검토 완료로만 기록됩니다.</p></section>
+    </section>
+  </main>
+  <footer><button id="collect" class="collect">＋ 더 가져오기</button><button id="reset" class="text-button">최신부터 다시</button><p id="report" class="fineprint"></p><p class="footer-note">읽기와 초안만 돕습니다. 게시 버튼은 내 손으로.</p></footer>
+</body></html>
