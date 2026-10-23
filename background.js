@@ -1,7 +1,7 @@
 import {readShared, writeShared, isSyncChange} from './sync.js';
 import {exportRecords, importRecords} from './backup.js';
 import {DEFAULTS, AI_PRESETS, freshDB, localDay, aggregate, validateSettings, searchQueries,
-  ingest, recordReads, recordGeneration, markReviewed, parseDraft, samples, safeErrorInfo, migrateXAccounting, setXBaseline, migrateOriginalPosts, pruneExcluded, cleanExcludedAuthors, migrateVerifiedPosts} from './core.js';
+  ingest, recordReads, recordGeneration, markReviewed, parseDraft, samples, safeErrorInfo, migrateXAccounting, setXBaseline, migrateOriginalPosts, pruneExcluded, cleanExcludedAuthors, migrateVerifiedPosts, clearQueue} from './core.js';
 
 const API = 'https://api.x.com';
 const SCOPES = 'tweet.read users.read offline.access';
@@ -404,6 +404,9 @@ async function route(message) {
       try { await generate(state); } catch (e) { state.db.lastReport = e.message; await saveDB(state.db); }
       break;
     case 'RESET_CURSORS': state.db.cursors = {}; await saveDB(state.db); break;
+    case 'CLEAR_QUEUE':
+      if (state.db.demo) throw new Error('체험 모드에서는 대기 글을 비울 수 없습니다.');
+      clearQueue(state.db); await saveDB(state.db); break;
     case 'TOGGLE_DEMO':
       state.db.demo = !state.db.demo;
       if (state.db.demo && !state.db.demoQueue.length) state.db.demoQueue = samples();

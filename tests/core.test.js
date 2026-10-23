@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {DEFAULTS, freshDB, localDay, utcDay, cleanKeywords, matches, searchQueries, ingest,
-  recordReads, recordGeneration, aggregate, markReviewed, validateSettings, parseDraft, safeErrorInfo, migrateXAccounting, setXBaseline, isReply, migrateOriginalPosts, unavailablePost, cleanExcludedAuthors, cleanExcludeKeywords} from '../core.js';
+  recordReads, recordGeneration, aggregate, markReviewed, validateSettings, parseDraft, safeErrorInfo, migrateXAccounting, setXBaseline, isReply, migrateOriginalPosts, unavailablePost, cleanExcludedAuthors, cleanExcludeKeywords, clearQueue} from '../core.js';
 
 test('Korean filter, case folding, full-width text, and keyword deduplication', () => {
   assert.equal(matches({lang: 'ko', text: 'ＣｈａｔＧＰＴ 자동화'}, ['chatgpt']), true);
@@ -207,4 +207,19 @@ test('editable reply instructions validate length and preserve user text', () =>
   assert.equal(validateSettings({...DEFAULTS, replyPrompt: '담백하게 질문 하나만 쓰세요.'}).replyPrompt, '담백하게 질문 하나만 쓰세요.');
   assert.throws(() => validateSettings({...DEFAULTS, replyPrompt: ''}));
   assert.throws(() => validateSettings({...DEFAULTS, replyPrompt: 'x'.repeat(10001)}));
+});
+test('clearing the queue archives leftover drafts, restarts from newest, and keeps history', () => {
+  const db = freshDB();
+  db.queue = [{id: '1', draft: '어제 초안'}, {id: '2', draft: ''}];
+  db.archivedCandidates = [{id: '0'}]; db.processed = {9: '2026-10-22'}; db.cursors = {timeline: 'abc', searchIndex: 2};
+  db.stats = {'2026-10-22': {reviewed: 1}};
+  assert.equal(clearQueue(db), 2);
+  assert.deepEqual(db.queue, []); assert.deepEqual(db.cursors, {});
+  assert.deepEqual(db.archivedCandidates.map(p => p.id), ['0', '1', '2']);
+  assert.equal(db.archivedCandidates[1].draft, '어제 초안');
+  assert.deepEqual(db.processed, {9: '2026-10-22'}); assert.deepEqual(db.stats, {'2026-10-22': {reviewed: 1}});
+  assert.match(db.lastReport, /2개/);
+  // Cleared posts are not marked processed, so they can be collected again.
+  ingest(db, {data: [{id: '1', author_id: '2', lang: 'ko', text: 'AI 자동화'}], includes: {users: [{id: '2', name: '민', username: 'min', verified: true}]}}, 'search', DEFAULTS, '99');
+  assert.deepEqual(db.queue.map(p => p.id), ['1']);
 });

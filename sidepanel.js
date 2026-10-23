@@ -44,6 +44,7 @@ function updateButtons() {
   $('draft').disabled = busy || !!state?.operation;
   $('copy').disabled ||= !state?.current || !$('draft').value.trim();
   $('regenerate').disabled ||= !!state?.demo;
+  $('clear-queue').disabled ||= !!state?.demo || !state?.remaining;
   $('regenerate').title = state?.demo ? '체험 모드는 준비된 초안을 사용합니다.' : '선택한 AI로 새 초안을 만듭니다. 비용이 발생합니다.';
   $('collect').textContent = busy ? '처리 중…' : '＋ 더 가져오기';
   $('notice').hidden = !(busy || state?.operation);
@@ -90,6 +91,11 @@ $('next').onclick = () => run(async () => { await persistDraft(); render(await s
 $('regenerate').onclick = () => run(async () => { await persistDraft(); render(await send('GENERATE')); });
 $('demo').onclick = () => run(async () => { await persistDraft(); render(await send('TOGGLE_DEMO')); });
 $('reset').onclick = () => run(async () => { await persistDraft(); render(await send('RESET_CURSORS')); $('report').textContent = '다음 수집은 최신 글부터 시작합니다. 처리 이력은 유지됩니다.'; });
+$('clear-queue').onclick = () => run(async () => {
+  if (!confirm(`대기 글 ${state.remaining}개를 비울까요?
+글과 초안은 백업으로 옮겨지고, 다음 수집은 최신 글부터 시작합니다.`)) return;
+  await persistDraft(); render(await send('CLEAR_QUEUE'));
+});
 // No polling or collection timer. Updates here only read local extension state.
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'local' && !busy && (changes.db || changes.auth || changes.settings)) send('GET_STATUS').then(render).catch(showError);

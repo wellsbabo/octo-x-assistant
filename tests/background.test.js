@@ -435,3 +435,17 @@ test('portable records restore counts while keeping this device API keys and req
   assert.equal(h.local.settings.apiKey, 'xai-test'); assert.equal(h.local.auth, null);
   assert.equal(h.calls.length, 0);
 });
+test('clear queue archives leftovers with drafts, resets cursors, and makes no API calls', async () => {
+  const data = initial();
+  data.db.queue = [{id: '1', text: '어제 글', draft: '초안'}, {id: '2', text: '어제 글2', draft: ''}];
+  data.db.cursors = {timeline: 'old', searchIndex: 1}; data.db.processed = {5: '2026-10-22'};
+  const h = await harness(data);
+  let r = await h.send('CLEAR_QUEUE');
+  assert.equal(r.ok, true); assert.equal(r.value.current, null); assert.equal(r.value.remaining, 0);
+  assert.equal(r.value.archivedCandidateCount, 2); assert.equal(r.value.processedCount, 1);
+  assert.deepEqual(h.local.db.cursors, {}); assert.equal(h.calls.length, 0);
+  r = await h.send('EXPORT_ARCHIVED_CANDIDATES');
+  assert.equal(r.value.posts[0].draft, '초안');
+  await h.send('TOGGLE_DEMO'); r = await h.send('CLEAR_QUEUE');
+  assert.equal(r.ok, false); assert.match(r.error, /체험 모드/);
+});

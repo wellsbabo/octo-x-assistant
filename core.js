@@ -210,6 +210,15 @@ export function markReviewed(db, time = Date.now()) {
   const p = db.queue.shift();
   if (p) { db.processed[p.id] = localDay(time); dayStat(db, time).reviewed++; }
 }
+// Leftovers move to the archive (still downloadable) and collection restarts from the newest posts.
+// They are not marked processed, so they may be collected again.
+export function clearQueue(db) {
+  const count = db.queue.length;
+  db.archivedCandidates = [...(db.archivedCandidates || []), ...db.queue];
+  db.queue = []; db.cursors = {};
+  db.lastReport = count ? `대기 글 ${count}개를 백업으로 옮겼습니다. 다음 수집은 최신 글부터 시작합니다. 설정 → 월간 통계에서 글·초안을 내려받을 수 있습니다.` : '비울 대기 글이 없습니다. 다음 수집은 최신 글부터 시작합니다.';
+  return count;
+}
 export function aggregate(db, prefix) {
   const result = {read: 0, matched: 0, reviewed: 0, postUnits: 0, userUnits: 0, xCost: 0,
     grokCost: 0, openaiCost: 0, generations: 0, inputTokens: 0, outputTokens: 0,
